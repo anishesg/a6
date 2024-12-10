@@ -19,13 +19,11 @@ static void setField(unsigned int uiSrc, unsigned int uiSrcStartBit,
                      unsigned int *puiDest, unsigned int uiDestStartBit,
                      unsigned int uiNumBits)
 {
-   for (unsigned int bitIndex = 0; bitIndex < uiNumBits; bitIndex++) {
-      unsigned int srcBitPos = uiSrcStartBit + bitIndex;
-      unsigned int destBitPos = uiDestStartBit + bitIndex;
-      /* check if that particular bit in uiSrc is set */
-      if ((uiSrc >> srcBitPos) & 1U) {
-         /* set the corresponding bit in *puiDest */
-         *puiDest |= (1U << destBitPos);
+   for (unsigned int bitPos = 0; bitPos < uiNumBits; bitPos++) {
+      unsigned int srcBitMask = 1U << (uiSrcStartBit + bitPos);
+      if ((uiSrc & srcBitMask) != 0) {
+         unsigned int destBitMask = 1U << (uiDestStartBit + bitPos);
+         *puiDest |= destBitMask;
       }
    }
 }
@@ -35,13 +33,12 @@ static void setField(unsigned int uiSrc, unsigned int uiSrcStartBit,
 
 unsigned int MiniAssembler_mov(unsigned int uiReg, int iImmed)
 {
-   unsigned int uiInstr = 0x52800000; 
+   unsigned int uiInstr = 0x52800000;
 
-   /* place the register in [0:4] */
+   /* Insert the register number */
    setField(uiReg, 0, &uiInstr, 0, 5);
 
-   /* place the immediate in [5:20], 16 bits */
-   /* no masking done here; if needed, caller ensures correctness */
+   /* Insert the immediate into bits [5:20] */
    setField((unsigned int)iImmed, 0, &uiInstr, 5, 16);
 
    return uiInstr;
@@ -77,10 +74,7 @@ unsigned int MiniAssembler_strb(unsigned int uiFromReg, unsigned int uiToReg)
 {
    unsigned int uiInstr = 0x39000000;
 
-   /* place wFromReg in [0:4] */
    setField(uiFromReg, 0, &uiInstr, 0, 5);
-
-   /* place xToReg in [5:9] */
    setField(uiToReg, 0, &uiInstr, 5, 5);
 
    return uiInstr;
@@ -92,10 +86,8 @@ unsigned int MiniAssembler_b(unsigned long ulAddr,
    unsigned long ulAddrOfThisInstr)
 {
    unsigned int uiInstr = 0x14000000;
-   unsigned long distance = ulAddr - ulAddrOfThisInstr;
-   unsigned int offset = (unsigned int)(distance >> 2);
+   unsigned int offset = (unsigned int)((ulAddr - ulAddrOfThisInstr) >> 2);
 
-   /* insert offset in [0:25] */
    setField(offset, 0, &uiInstr, 0, 26);
 
    return uiInstr;
