@@ -17,7 +17,7 @@ this main function:
 - writes a specific sequence of bytes to a file named "dataB" for a B grade.
 - returns 0 on success.
 */
-`
+
 int main(void) {
     const char *myName = "Anish";
     size_t nameLen = 5;
