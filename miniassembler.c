@@ -19,11 +19,14 @@ static void setField(unsigned int uiSrc, unsigned int uiSrcStartBit,
                      unsigned int *puiDest, unsigned int uiDestStartBit,
                      unsigned int uiNumBits)
 {
-   for (unsigned int bitPos = 0; bitPos < uiNumBits; bitPos++) {
-      unsigned int srcBitMask = 1U << (uiSrcStartBit + bitPos);
-      if ((uiSrc & srcBitMask) != 0) {
-         unsigned int destBitMask = 1U << (uiDestStartBit + bitPos);
-         *puiDest |= destBitMask;
+   for (unsigned int bit = 0; bit < uiNumBits; bit++) {
+      unsigned int sourceBit = uiSrcStartBit + bit;
+      unsigned int destBit = uiDestStartBit + bit;
+      
+      /* Check if the current bit in uiSrc is set */
+      if ((uiSrc >> sourceBit) & 1U) {
+         /* Set the corresponding bit in *puiDest */
+         *puiDest |= (1U << destBit);
       }
    }
 }
@@ -33,12 +36,12 @@ static void setField(unsigned int uiSrc, unsigned int uiSrcStartBit,
 
 unsigned int MiniAssembler_mov(unsigned int uiReg, int iImmed)
 {
-   unsigned int uiInstr = 0x52800000;
+   unsigned int uiInstr = 0x52800000; /* Base opcode for MOV */
 
-   /* Insert the register number */
+   /* Insert the destination register into bits [0:4] */
    setField(uiReg, 0, &uiInstr, 0, 5);
 
-   /* Insert the immediate into bits [5:20] */
+   /* Insert the immediate value into bits [5:20] */
    setField((unsigned int)iImmed, 0, &uiInstr, 5, 16);
 
    return uiInstr;
